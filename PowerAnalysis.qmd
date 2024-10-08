@@ -1,0 +1,7 @@
+# Power Analysis - Effect of Merchandise on Social Interaction and Recruiting Efforts
+
+```{r, include=FALSE} 
+library(data.table)
+library(here)
+```
+
