@@ -12,12 +12,12 @@ size <- hours * sessions_per_hour * people_per_session
 
 demo_size = 1000
 d <- data.table(
-  shared_flyers_control = rnorm(demo_size, 40 / sessions_per_hour, 10 ),
+  shared_flyers_control = rnorm(demo_size, 40, 1 ),
   replies_control = rnorm(demo_size, 3, 1),
   treatment = sample(0:1, demo_size, replace = TRUE)
 )
-d[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 1, 1)]
-d[, replies_treatment := replies_control + rnorm(demo_size, 0.5, 1)]
+d[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 10, 1)]
+d[, replies_treatment := replies_control + rnorm(demo_size, 2, 1)]
 d[, shared_measured := I(treatment == 1) * shared_flyers_treatment + I(treatment == 0) * shared_flyers_control]
 d[, replies_measured := I(treatment == 1) * replies_treatment + I(treatment == 0) * replies_control]
 
@@ -34,18 +34,14 @@ p_values <- function(samples) {
     d[treatment==1,][sample(1:.N, samples, replace = FALSE), ],
     d[treatment==0,][sample(1:.N, samples, replace = FALSE), ]
   )
-  shared_measured_ate <- mean(sub_sample[treatment == 1]$shared_measured) 
-  - mean(sub_sample[treatment == 0]$shared_measured)
-  replies_measured_ate <- mean(sub_sample[treatment == 1]$replies_measured) 
-  - mean(sub_sample[treatment == 0]$replies_measured)
-  ri_ates <- replicate(10000, {
+  shared_measured_ate <- mean(sub_sample[treatment == 1]$shared_measured) - mean(sub_sample[treatment == 0]$shared_measured)
+  replies_measured_ate <- mean(sub_sample[treatment == 1]$replies_measured) - mean(sub_sample[treatment == 0]$replies_measured)
+  ri_ates <- replicate(500, {
     # Increasing efficiency of estimate by making sure both groups are 50% of the sample
     ri_sample <- sub_sample[, ri_treat := sample(rep(0:1, each = samples))] 
     c(
-      shared_ate = mean(ri_sample$shared_measured[ri_sample$ri_treat == 1]) 
-      - mean(ri_sample$shared_measured[ri_sample$ri_treat == 0]),
-      replies_ate = mean(ri_sample$replies_measured[ri_sample$ri_treat == 1]) 
-      - mean(ri_sample$replies_measured[ri_sample$ri_treat == 0])
+      shared_ate = mean(ri_sample$shared_measured[ri_sample$ri_treat == 1]) - mean(ri_sample$shared_measured[ri_sample$ri_treat == 0]),
+      replies_ate = mean(ri_sample$replies_measured[ri_sample$ri_treat == 1]) - mean(ri_sample$replies_measured[ri_sample$ri_treat == 0])
     )
   })
 
@@ -74,17 +70,10 @@ split_values <- c(10, 20, 40)
 ggplot() +
   geom_line() +
   geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$shared_p), color = "red") +
+  geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$replies_p), color = "blue") +
   geom_vline(xintercept = split_values, linetype = "dashed") +
-  geom_hline(yintercept = 1 - 0.05, linetype = "dashed") +
+  geom_hline(yintercept = 1 - 0.05, linetype = "dashed", color="green") +
   scale_x_continuous(breaks = split_values) +
-  labs(x = "Number of sessions per group", y = "power") +
+  labs(x = "Number of sessions per group", y = "power shared") +
   theme_minimal() 
 
-ggplot() +
-  geom_line() +
-  geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$replies_p), color = "red") +
-  geom_vline(xintercept = split_values, linetype = "dashed") +
-  geom_hline(yintercept = 1 - 0.05, linetype = "dashed") +
-  scale_x_continuous(breaks = split_values) +
-  labs(x = "Number of sessions per group", y = "power") +
-  theme_minimal() 
