@@ -30,10 +30,10 @@ d[, replies_measured := pmax(replies_measured, 0)]
 number_of_sessions_per_group <- 1:100
 
 p_values <- function(samples) {
-  sub_sample <- bind_rows(
+  sub_sample <- rbindlist(list(
     d[treatment==1,][sample(1:.N, samples, replace = FALSE), ],
     d[treatment==0,][sample(1:.N, samples, replace = FALSE), ]
-  )
+  ))
   shared_measured_ate <- mean(sub_sample[treatment == 1]$shared_measured) - mean(sub_sample[treatment == 0]$shared_measured)
   replies_measured_ate <- mean(sub_sample[treatment == 1]$replies_measured) - mean(sub_sample[treatment == 0]$replies_measured)
   ri_ates <- replicate(500, {
@@ -69,11 +69,12 @@ setnames(p_values_dt, c("shared_p", "replies_p"))
 split_values <- c(10, 20, 40)
 ggplot() +
   geom_line() +
-  geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$shared_p), color = "red") +
-  geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$replies_p), color = "blue") +
+  geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$shared_p, color = "Shared"), alpha = 0.7, size=1.2) +
+  geom_line(aes(x = number_of_sessions_per_group, y = 1 - p_values_dt$replies_p, color = "Replied"), alpha = 0.7, size=1.2) +
   geom_vline(xintercept = split_values, linetype = "dashed") +
   geom_hline(yintercept = 1 - 0.05, linetype = "dashed", color="green") +
-  scale_x_continuous(breaks = split_values) +
-  labs(x = "Number of sessions per group", y = "power shared") +
-  theme_minimal() 
+  scale_x_continuous(breaks = sort(c(seq(0, 50, by = 5), split_values))) +
+  scale_color_manual(values = c("Shared"="red", "Replied"="blue")) +
+  labs(x = "Number of sessions per group", y = "Power shared", colour="Response") + 
+  theme_minimal()
 
