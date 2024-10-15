@@ -10,14 +10,18 @@ people_per_session = 2
 
 size <- hours * sessions_per_hour * people_per_session
 
+#Assuming: 40 fliers per hour
+#-> 6 every 10 minutes, or every session
+
+
 demo_size = 1000
 d <- data.table(
-  shared_flyers_control = rnorm(demo_size, 40, 1 ),
-  replies_control = rnorm(demo_size, 3, 1),
+  shared_flyers_control = rnorm(demo_size, 6, 0.5 ),
+  replies_control = rnorm(demo_size, 1, 0.25),
   treatment = sample(0:1, demo_size, replace = TRUE)
 )
-d[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 10, 1)]
-d[, replies_treatment := replies_control + rnorm(demo_size, 2, 1)]
+d[, shared_flyers_treatment := shared_flyers_control]# + rnorm(demo_size, 1, 0.25)
+d[, replies_treatment := replies_control ]#+ rnorm(demo_size, 0.5, 0.2)
 d[, shared_measured := I(treatment == 1) * shared_flyers_treatment + I(treatment == 0) * shared_flyers_control]
 d[, replies_measured := I(treatment == 1) * replies_treatment + I(treatment == 0) * replies_control]
 
@@ -27,7 +31,7 @@ d[, replies_measured := pmax(replies_measured, 0)]
 
 
 
-number_of_sessions_per_group <- 1:100
+number_of_sessions_per_group <- seq(5, 100, by = 5)
 
 p_values <- function(samples) {
   sub_sample <- rbindlist(list(
@@ -36,7 +40,7 @@ p_values <- function(samples) {
   ))
   shared_measured_ate <- mean(sub_sample[treatment == 1]$shared_measured) - mean(sub_sample[treatment == 0]$shared_measured)
   replies_measured_ate <- mean(sub_sample[treatment == 1]$replies_measured) - mean(sub_sample[treatment == 0]$replies_measured)
-  ri_ates <- replicate(500, {
+  ri_ates <- replicate(1000, {
     # Increasing efficiency of estimate by making sure both groups are 50% of the sample
     ri_sample <- sub_sample[, ri_treat := sample(rep(0:1, each = samples))] 
     c(

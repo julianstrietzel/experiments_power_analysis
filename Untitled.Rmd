@@ -1,0 +1,271 @@
+---
+title: "power_analysis"
+output: html_document
+date: "2024-10-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Rationale
+
+We’ll be flyering on Sproul Plaza. We interviewed 4 different students who handed out fliers (3 from Triathlon club, 1 from Glamour Girls). None of the people we interviewed wore Berkeley Merch. However, the table / banner design of the Triathlon club was themed with Berkeley colors. We received the following estimates: 
+
+5-20 fliers per hour (Glamour Girls)
+20-30 fliers per hour (Triathlon)
+40-60 fliers per hour (Triathlon)
+100 fliers per hour (Triathlon)
+
+Given these numbers, we use a rough conservative estimate of mean: 40 fliers per hour, with a standard deviation of 10 for non-Berkeley, non-Stanford merch.
+
+From other research about clothing effects on donation recruitment (Levine, Bluni, Hochmann 1998), we get 56% donated if dressed preppy, vs 18% if dressed messy. That’s a 3x increase if people dressed preppy. This could be equivalent to wearing Stanford vs Berkeley Merch. However, in a different study where someone dressed up as Santa or not (Osbaldiston & De Boer, 2011), there was no significant difference in donations.  A conservative assumption might be a 1.5 times increase between conditions. This is in line with the Triathlon club handing out more fliers than the Glamour Girls (the Triathlon club table ‘gave Berkeley vibes’). 
+
+Assuming that the Stanford condition would produce 30 fliers per hour (with std=5), the Berkeley merch condition might then produce a 1.5x increase in fliers, giving us 45 fliers per hour (with std=5).
+
+We'll be runnning 6 sessions per hour, so dividing the above numbers by 6 results in the following 3 conditions we'll be testing, accross sample size = 4-40, increasing by 2 at each measurement. We estimate the QR-code scan average to be 1 per session in control/stanford.
+
+
+#Condition 1: As above
+Control/Stanford Condition: 
+* 5 fliers per session (std 0.5)
+* 1 scan per session (std 0.25)
+Berkeley Condition: 
+* 7.5 fliers per session 
+* 1.5 scans per session
+
+#Condition 2: Lower ATEs
+Control/Stanford Condition: 
+* 5 fliers per session (std 0.5)
+* 1 scan per session (std 0.25)
+Berkeley Condition: 
+* 6 fliers per session 
+* 1.2 scans per session
+
+#Condition 3: Higher Variance
+Control/Stanford Condition: 
+* 5 fliers per session (std 1)
+* 1 scan per session (std 0.5)
+Berkeley Condition: 
+* 7.5 fliers per session 
+* 1.5 scans per session
+
+
+In the following, we are comparing the Berkeley vs Stanford condition.
+
+## Generating Data
+
+``` {r data}
+library(ggplot2)
+library(data.table)
+
+set.seed(1)
+
+demo_size = 1000
+d <- data.table(
+  shared_flyers_control = rnorm(demo_size, 5, 0.5 ),
+  replies_control = rnorm(demo_size, 1, 0.25),
+  treatment = sample(rep(0:1, each = demo_size / 2))
+)
+
+
+d[, shared_flyers_treatment := shared_flyers_control + 2.5 ]
+d[, replies_treatment := replies_control + 0.5 ]
+
+#d[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 1, 0.25) ]
+#d[, replies_treatment := replies_control + rnorm(demo_size, 0.5, 0.2)  ]
+
+d[, shared_measured := ifelse(treatment == 1, shared_flyers_treatment, shared_flyers_control)]
+d[, replies_measured := ifelse(treatment == 1, replies_treatment, replies_control)]
+
+# min all measurements to zero
+d[, shared_measured := pmax(shared_measured, 0)]
+d[, replies_measured := pmax(replies_measured, 0)]
+
+
+
+#Preparing data for Scenario 2
+e <- data.table(
+  shared_flyers_control = rnorm(demo_size, 5, 0.5 ),
+  replies_control = rnorm(demo_size, 1, 0.25),
+  treatment = sample(rep(0:1, each = demo_size / 2))
+)
+
+
+e[, shared_flyers_treatment := shared_flyers_control + 1 ]
+e[, replies_treatment := replies_control + 0.2  ]
+
+#e[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 0.6, 0.25) ]
+#e[, replies_treatment := replies_control + rnorm(demo_size, 0.25, 0.2)  ]
+
+e[, shared_measured := ifelse(treatment == 1, shared_flyers_treatment, shared_flyers_control)]
+e[, replies_measured := ifelse(treatment == 1, replies_treatment, replies_control)]
+
+# min all measurements to zero
+e[, shared_measured := pmax(shared_measured, 0)]
+e[, replies_measured := pmax(replies_measured, 0)]
+
+
+#Preparing data for Scenario 3: More variance in data
+c <- data.table(
+  shared_flyers_control = rnorm(demo_size, 5, 1 ),
+  replies_control = rnorm(demo_size, 1, 0.5),
+  treatment = sample(rep(0:1, each = demo_size / 2))
+)
+
+
+c[, shared_flyers_treatment := shared_flyers_control + 2.5 ]
+c[, replies_treatment := replies_control + 0.5  ]
+
+#c[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 1, 0.25) ]
+#c[, replies_treatment := replies_control + rnorm(demo_size, 0.5, 0.2)  ]
+
+c[, shared_measured := ifelse(treatment == 1, shared_flyers_treatment, shared_flyers_control)]
+c[, replies_measured := ifelse(treatment == 1, replies_treatment, replies_control)]
+
+# min all measurements to zero
+c[, shared_measured := pmax(shared_measured, 0)]
+c[, replies_measured := pmax(replies_measured, 0)]
+
+
+
+```
+
+##Now, let's generate power values
+
+
+```{r general_function}
+
+
+# General function to compute and plot power vs. sample size
+compute_power_plot <- function(d, number_of_sessions_per_group, conditionTitle="No Title", power_repeats = 200) {
+  power_shared <- numeric(length(number_of_sessions_per_group))
+  power_replies <- numeric(length(number_of_sessions_per_group))
+
+  for (j in seq_along(number_of_sessions_per_group)) {
+    samples <- number_of_sessions_per_group[j]
+    
+    p_values_shared <- numeric(power_repeats) 
+    p_values_replies <- numeric(power_repeats)
+    
+    for (k in 1:power_repeats) {
+      
+      sub_sample <- rbindlist(list(
+        d[treatment == 1, ][sample(1:.N, samples, replace = FALSE), ],
+        d[treatment == 0, ][sample(1:.N, samples, replace = FALSE), ]
+      ))
+      
+      #t-test for shared_measured
+      t_test_shared <- t.test(shared_measured ~ treatment, data = sub_sample)
+      p_values_shared[k] <- t_test_shared$p.value
+      
+      #t-test for replies_measured
+      t_test_replies <- t.test(replies_measured ~ treatment, data = sub_sample)
+      p_values_replies[k] <- t_test_replies$p.value
+    }
+    
+    power_shared[j] <- mean(p_values_shared < 0.05)
+    power_replies[j] <- mean(p_values_replies < 0.05)
+  }
+  
+  # Create a data frame for plotting
+  power_data <- data.table(
+    Sample_Size = number_of_sessions_per_group,
+    Power_Shared = power_shared,
+    Power_Replies = power_replies
+  )
+  
+  # Plotting
+  ggplot(power_data, aes(x = Sample_Size)) +
+    geom_line(aes(y = Power_Shared, color = "Shared Measured"), size = 1) +
+    geom_line(aes(y = Power_Replies, color = "Replies Measured"), size = 1) +
+    labs(
+      title = conditionTitle,
+      x = "Number of Sessions per Group",
+      y = "Power",
+      color = "Measurements"
+    ) +
+    theme_minimal()
+}
+
+
+number_of_sessions_per_group <- seq(2, 20, by = 1)
+
+
+compute_power_plot(d, number_of_sessions_per_group, conditionTitle="Power vs Sample Size for Condition: Shared ATE=2.5, Replies ATE = 0.5")
+compute_power_plot(e, number_of_sessions_per_group, conditionTitle="Power vs Sample Size for Condition: Shared ATE=1, Replies ATE = 0.2")
+compute_power_plot(c, number_of_sessions_per_group, conditionTitle="Power vs Sample Size for Condition: High Variance")
+```
+
+
+
+
+
+
+##Old code for performing random inference / without general function, too costly
+
+```{r p_values}
+#
+#d[, shared_flyers_treatment := shared_flyers_control + rnorm(demo_size, 1, 0.25) ]
+#d[, replies_treatment := replies_control + rnorm(demo_size, 0.5, 0.2)  ]
+
+#d[, shared_measured := ifelse(treatment == 1, shared_flyers_treatment, shared_flyers_control)]
+#d[, replies_measured := ifelse(treatment == 1, replies_treatment, replies_control)]
+
+# min all measurements to zero
+#d[, shared_measured := pmax(shared_measured, 0)]
+#d[, replies_measured := pmax(replies_measured, 0)]
+
+#number_of_sessions_per_group <- seq(3, 20, by = 2)
+#power_shared <- numeric(length(number_of_sessions_per_group))
+#power_replies <- numeric(length(number_of_sessions_per_group))
+
+#for (j in seq_along(number_of_sessions_per_group)) {
+  #samples <- number_of_sessions_per_group[j]
+  
+  #power_repeats <- 100
+  #p_values_shared <- numeric(power_repeats) 
+  #p_values_replies <- numeric(power_repeats)
+  
+  #for (k in 1:power_repeats) {
+    
+    #sub_sample <- rbindlist(list(
+   #   d[treatment == 1, ][sample(1:.N, samples, replace = FALSE), ],
+    #  d[treatment == 0, ][sample(1:.N, samples, replace = FALSE), ]
+    #))
+  
+    
+    #Random inference. This would be nice, but takes way too much time to run. Using t-tests (above) instead
+    #shared_measured_ate <- mean(sub_sample[treatment == 1]$shared_measured) - mean(sub_sample[treatment == 0]$shared_measured)
+    #replies_measured_ate <- mean(sub_sample[treatment == 1]$replies_measured) - mean(sub_sample[treatment == 0]$replies_measured)
+    
+    #res_shared <- numeric(1000)
+    #res_replies <- numeric(1000)
+    
+    #for (i in 1:1000) { 
+      #balanced_random_treatment <- sample(rep(0:1, each = nrow(sub_sample) / 2))
+    
+      #sub_sample[, random_treatment := balanced_random_treatment]
+      
+    # ri_means_shared <- sub_sample[, .(ri_mean_shared = mean(shared_measured)), keyby = .(random_treatment)]
+    # ri_means_replies <- sub_sample[, .(ri_mean_replies = mean(replies_measured)), keyby = .(random_treatment)]
+      
+     #res_shared[i] <- diff(ri_means_shared$ri_mean_shared)
+    # res_replies[i] <- diff(ri_means_replies$ri_mean_replies)
+    #}
+    
+     #Performing a two-tailed p-value test
+    #p_values_shared[k] <- mean(abs(res_shared) >= abs(shared_measured_ate)) 
+    #p_values_replies[k] <- mean(abs(res_replies) >= abs(replies_measured_ate))
+ # }
+  
+  # Calculating power
+ # power_shared[j] <- mean(p_values_shared < 0.05) 
+ # power_replies[j] <- mean(p_values_replies < 0.05)
+#}
+
+#print(power_shared)
+#print(power_replies)
+
+```
+
