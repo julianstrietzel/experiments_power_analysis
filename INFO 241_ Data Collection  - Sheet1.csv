@@ -1,0 +1,7 @@
+day_of_week,date,groups,time,treatment_g1,treatment_g2,num_flyers,num_flyers_g1,num_flyers_g2,qr_scanned_g1,qr_scanned_g2,seconds_to_cap_g1,extra_num_flyers_g1,extra_qr_g1,seconds_to_cap_g2,extra_num_flyers_g2,extra_qr_g2
+Thursday,10/17,1) Srisha & Julian; 2) Will & Vetle,12:20,Berkeley,Neutral,G1) 1,10,10,1,0,280,21.42857143,2.142857143,472,12.71186441,0
+Thursday,10/17,1) Srisha & Julian; 2) Will & Vetle,12:35,Neutral,Berkeley,G1) 2,10,10,1,2,283,21.20141343,2.120141343,382,15.70680628,3.141361257
+Thursday,10/17,1) Srisha & Julian; 2) Will & Vetle,12:50,Berkeley,Neutral,G1) 3,10,10,0,3,390,15.38461538,0,202,29.7029703,8.910891089
+Thursday,10/17,1) Srisha & Julian; 2) Will & Vetle,13:02,Neutral,Berkeley,G1) 4,10,10,1,0,410,14.63414634,1.463414634,305,19.67213115,0
+Thursday,10/17,1) Srisha & Julian; 2) Will & Vetle,13:15,Berkeley,Neutral,G1) 5,10,10,2,2,435,13.79310345,2.75862069,516,11.62790698,2.325581395
+Thursday,10/17,1) Srisha & Julian; 2) Will & Vetle,13:30,Neutral,Berkeley,G1) 6,10,10,0,2,490,12.24489796,0,517,11.60541586,2.321083172
