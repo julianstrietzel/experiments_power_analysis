@@ -1,0 +1,83 @@
+---
+---
+---
+
+```{r, include = FALSE}
+library(data.table)
+library(ggplot2)
+library(here)
+library(dplyr)
+library(progress)
+library(stargazer)
+
+data = fread(here("exp_2", "5_sessions_combined.csv"))
+```
+
+```{r}
+# showing the data: 
+head(data)
+```
+
+```{r}
+model_not_interacted = data[, lm(success_rate ~ treatment + factor(team) + factor(person))]
+model_interacted_person = data[, lm(success_rate ~ treatment*factor(person))]
+model_interacted_team = data[, lm(success_rate ~ treatment*factor(team))]
+
+stargazer(model_not_interacted, model_interacted_person, model_interacted_team, type = "text")
+```
+
+```{r}
+for (pers in data[, unique(person)]) {
+  ate = data[(treatment == 1 & person == pers ), mean(success_rate)] - data[(treatment == 0 & person == pers ), mean(success_rate)]
+  print(paste("The ATE for person", pers, "is", ate))
+}
+for (tm in data[, unique(team)]) {
+  ate = data[(treatment == 1 & team == tm ), mean(success_rate)] - data[(treatment == 0 & team == tm ), mean(success_rate)]
+  print(paste("The ATE for team", tm, "is", ate))
+}
+```
+
+```{r}
+# This is making sure, that each minute within a session is assigned to the same treatment
+rel_data = data[team == "js"]
+real_ate = mean(rel_data[treatment == 1, success_rate]) - mean(rel_data[treatment == 0, success_rate])
+sessions = unique(rel_data[, .(session, day)])
+ates = c()
+n = nrow(sessions)
+for (i in 1:1000) {
+  treatments <- if (n %% 2 == 0) {
+    rep(c(0, 1), length.out = n)   
+  } else {
+    c(rep(c(0, 1), length.out = n - 1), sample(c(0, 1), 1))  # If odd, add one extra random assignment
+  }
+  sessions[, treatment_ri := sample(treatments)]
+  # merge by session and day
+  merged = merge(rel_data, sessions, by = c("session", "day"))
+  ate = mean(merged[treatment_ri == 1, success_rate]) - mean(merged[treatment_ri == 0, success_rate])
+  ates = c(ates, ate)
+}
+# plot hist with vertical line for real_ate and print p value
+ggplot() + geom_histogram(aes(x = ates), bins = 30) + geom_vline(xintercept = real_ate, color = "red") + theme_minimal()
+print(paste("The p-value is", sum(abs(ates) >= abs(real_ate)) / length(ates)))
+```
+
+```{r}
+# This will assign every minute at random but at least being balanced
+rel_data = data[team == "js"]
+real_ate = mean(rel_data[treatment == 1, success_rate]) - mean(rel_data[treatment == 0, success_rate])
+ates = c()
+n = nrow(rel_data)
+for (i in 1:1000) {
+  treatments <- if (n %% 2 == 0) {
+    rep(c(0, 1), length.out = n)   
+  } else {
+    c(rep(c(0, 1), length.out = n - 1), sample(c(0, 1), 1))  # If odd, add one extra random assignment
+  }
+  rel_data[, treatment_ri := sample(treatments)]
+  # merge by session and day
+  ate = mean(rel_data[treatment_ri == 1, success_rate]) - mean(rel_data[treatment_ri == 0, success_rate])
+  ates = c(ates, ate)
+}
+ggplot() + geom_histogram(aes(x = ates), bins = 30) + geom_vline(xintercept = real_ate, color = "red") + theme_minimal()
+(p_value = sum(abs(ates) <= abs(real_ate)) / length(ates))
+```

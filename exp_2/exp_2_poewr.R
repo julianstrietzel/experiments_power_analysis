@@ -6,12 +6,12 @@ library(dplyr)
 library(progress)
 library(stargazer)
 
-tenth_sessions = fread(here("exp_2_1", "10_sessions_vw_only_v.csv"))
-fifth_sessions = fread(here("exp_2_1", "5_sessions_vw_only_v.csv"))
+tenth_sessions = fread(here("exp_2", "session_1", "10_sessions_vw_only_v.csv"))
+fifth_sessions = fread(here("exp_2", "session_1", "5_sessions_vw_only_v.csv"))
 
-third_sessions = fread(here("exp_2_1", "3_sessions_vw_only_v.csv"))
-half_sessions = fread(here("exp_2_1", "2_sessions_vw_only_v.csv"))
-full_sessions = fread(here("exp_2_1", "1_sessions_vw_only_v.csv"))
+third_sessions = fread(here("exp_2", "session_1", "3_sessions_vw_only_v.csv"))
+half_sessions = fread(here("exp_2", "session_1", "2_sessions_vw_only_v.csv"))
+full_sessions = fread(here("exp_2", "session_1", "1_sessions_vw_only_v.csv"))
 
 
 
@@ -62,7 +62,7 @@ stargazer(model_fifth, model_tenth, model_ten_team_interaction, type = "text", o
           column.labels = c("Fifth", "Tenth", "Tenth Interaction"), title="2/1 min subsessions"
           )
 
-twentieth_sessions = fread(here("exp_2_1", "20_sessions_vw_only_v.csv"))
+twentieth_sessions = fread(here("exp_2", "session_1", "20_sessions_vw_only_v.csv"))
 model_twenty = twentieth_sessions[, lm(success_rate ~ factor(team) * treatment)]
 stargazer(model_twenty, type = "text")
 
@@ -119,7 +119,7 @@ stargazer(model, model2, type = "text")
 
 # Look if splitting this multiple sessions for vetle and will is a good idea
 
-two_min_split = fread(here("exp_2_1", "5_sessions_v_and_w_split_second_half.csv"))
+two_min_split = fread(here("exp_2", "session_1", "5_sessions_v_and_w_split_second_half.csv"))
 model_two_min = two_min_split[, lm(success_rate ~ factor(team) * treatment)]
 model_two_min_ignored_vw = two_min_split[team != "vw", lm(success_rate ~ factor(team) * treatment)]
 model_two_no_intercept = two_min_split[, lm(success_rate ~ factor(team) * treatment - 1)]
