@@ -91,9 +91,33 @@ for (i in 1:1000) {
 ggplot() + geom_histogram(aes(x = ates), bins = 30) + geom_vline(xintercept = real_ate, color = "red") + theme_minimal()
 (p_value = sum(abs(ates) <= abs(real_ate)) / length(ates))
 ```
-# Plotting cum sum per session, as suggested by Alex during last weeks meeting
+# Treating every person that passed as randomized individual, which basically ignores the clustered session randomization 
 ```{r}
-data[, cum_success_rate := cumsum(success_rate), by = c("team", "treatment")]
+all_data = fread(here("exp_2", "exp2_all_data_points.csv"))
+head(all_data)
 
+```
+
+```{r}
+basic_model_all = all_data[, lm(success ~ treatment)]
+model_interacted_person_all = all_data[, lm(success ~ treatment*factor(person))]
+model_interacted_team_all = all_data[, lm(success ~ treatment*factor(team))]
+
+stargazer(basic_model_all, model_interacted_team_all, model_interacted_person_all
+          , type = "text"
+          , title = "Success Rate on Treatment (ignoring clustering) - Experiment 2"
+          , dep.var.labels = "Success Rate"
+          , column.labels = c("Basic", "Interacted Team", "Interacted Person")
+          , covariate.labels = c("Treatment", "Team vw", "Treatment*Team vw", "Person j", 'Person s', 'Person v', 'Person w', 'Treatment*Person j', 'Treatment*Person s', 'Treatment*Person v', 'Treatment*Person w')
+          , no.space = TRUE
+          , notes = c('Regressing treatment per individual person passing, on them taking the flyer or not',
+                      'This ignores the clustered randomization of the sessions'
+                      , 'Treatment constant is for person js, which was partly not marked in the data')
+          , omit = c("session_starts", 'session_within')
+          )
+```
+
+```{r}
+summary(all_data[, lm(success ~ treatment*factor(person) -1)])
 ```
 
