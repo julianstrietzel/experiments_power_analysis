@@ -10,7 +10,7 @@ library(dplyr)
 library(progress)
 library(stargazer)
 
-data = fread(here("exp_2", "5_sessions_combined.csv"))
+data = fread(here("exp_2", "5_virtual_sessions_combined.csv"))
 ```
 
 ```{r}
@@ -93,7 +93,7 @@ ggplot() + geom_histogram(aes(x = ates), bins = 30) + geom_vline(xintercept = re
 ```
 # Treating every person that passed as randomized individual, which basically ignores the clustered session randomization 
 ```{r}
-all_data = fread(here("exp_2", "exp2_all_data_points.csv"))
+all_data = fread(here("exp_2", "individual_data_points.csv"))
 head(all_data)
 
 ```

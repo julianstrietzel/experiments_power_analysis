@@ -5,7 +5,7 @@ library(here)
 library(dplyr)
 library(progress)
 
-d_1 <- data.table(fread(here("INFO 241_ Data Collection  - Sheet1.csv")))
+d_1 <- data.table(fread(here("exp_1_data_collection.csv")))
 d_2 = copy(d_1)
 d <- bind_rows(
   d_1[, `:=` (treatment = ifelse(treatment_g1 == "Neutral", 0, 1), num_flyers = num_flyers_g1, qr_scanned = qr_scanned_g1 , seconds_to_cap = seconds_to_cap_g1, group = 0)],
@@ -87,6 +87,7 @@ stargazer(mod_qr_basic,mod2, mod_2
 
 
 
+# Trying to see if the effect of treatment would be enough if we had more data
 
 # duplicate data
 d_duplicated = bind_rows(d, d, d, d, d, d, d)
