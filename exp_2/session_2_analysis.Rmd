@@ -26,12 +26,13 @@ model_interacted_team = data[, lm(success_rate ~ treatment*factor(team))]
 
 stargazer(basic_model, model_interacted_team, model_interacted_person
           , type = "text"
-          , title = "Success Rate on Treatment - Experiment 2", dep.var.labels = "Success Rate"
+          , title = "Success Rate on Treatment - Experiment 2"
+          , dep.var.labels = "Success Rate"
           , column.labels = c("Basic", "Interacted Team", "Interacted Person")
           , covariate.labels = c("Treatment", "Team vw", "Treatment*Team vw", "Person j", 'Person s', 'Person v', 'Person w', 'Treatment*Person j', 'Treatment*Person s', 'Treatment*Person v', 'Treatment*Person w')
           , no.space = TRUE
           , notes = c('Success rate is the cumulated success rate per virtual 2 minute session', 'Treatment constant is for person js, which was partly not marked in the data')
-          , omit = "session_starts"
+          , omit = c("session_starts", 'session_within')
           )
 ```
 

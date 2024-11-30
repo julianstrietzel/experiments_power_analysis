@@ -12,7 +12,7 @@ d <- bind_rows(
   d_2[, `:=` (treatment = ifelse(treatment_g2 == "Neutral", 0, 1), num_flyers = num_flyers_g2, qr_scanned = qr_scanned_g2 , seconds_to_cap = seconds_to_cap_g2, group = 1)]
   ) [, .(treatment, num_flyers, qr_scanned, seconds_to_cap, group, time, date, day_of_week)]
 # changing a specifc value 
-d[seconds_to_cap == 202, seconds_to_cap := 500]
+#d[seconds_to_cap == 202, seconds_to_cap := 500]
 d[, quote_used := seconds_to_cap / (60 * 10)]
 d[, `:=` (extra_qr = qr_scanned / quote_used, extra_num_flyers = num_flyers /quote_used)]
 
@@ -32,6 +32,20 @@ mod_3 = lm(extra_num_flyers ~ treatment + group + group * treatment, data = d)
 mod_4 = lm(qr_scanned ~ treatment + group + group * treatment, data = d)
 
 stargazer::stargazer(mod_1, mod_2, mod_3, mod_4, type = "text")
+
+
+stargazer(mod3, mod_3, mod2, mod_2
+          , type = "latex"
+          , dep.var.labels = c("Flyers distributed", "QR codes scanned")
+          , covariate.labels = c("Treatment", "Group", "Treatment * Group")
+          ,title = "Number of flyers distributed and QR codes scanned on Treatment - Experiment 1"
+          , no.space = TRUE
+          , notes = c(
+            'Values extrapolated based on the time it took to distribute 10 flyers per session'
+          )
+          )
+
+
 
 # duplicate data
 d_duplicated = bind_rows(d, d, d, d, d, d, d)
