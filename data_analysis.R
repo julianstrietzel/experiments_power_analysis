@@ -19,7 +19,9 @@ d[, `:=` (extra_qr = qr_scanned / quote_used, extra_num_flyers = num_flyers /quo
 mod1 = lm(seconds_to_cap ~ treatment + group, data = d)
 
 mod2 = lm(extra_qr ~ treatment + group, data = d)
+
 mod3 = lm(extra_num_flyers ~ treatment + group, data = d)
+
 mod4 = lm(qr_scanned ~ treatment + group, data = d)
 
 stargazer::stargazer(mod1, mod2, mod3, mod4, type = "text")
@@ -28,13 +30,15 @@ stargazer::stargazer(mod1, mod2, mod3, mod4, type = "text")
 
 mod_1 = lm(seconds_to_cap ~ treatment + group + group * treatment, data = d)
 mod_2 = lm(extra_qr ~ treatment + group + group * treatment, data = d)
-mod_3 = lm(extra_num_flyers ~ treatment + group + group * treatment, data = d)
+mod_3 = lm(extra_num_flyers ~ treatment + group * treatment, data = d)
 mod_4 = lm(qr_scanned ~ treatment + group + group * treatment, data = d)
 
 stargazer::stargazer(mod_1, mod_2, mod_3, mod_4, type = "text")
 
+mod_num_basic = lm(extra_num_flyers ~ treatment, data = d)
+mod_qr_basic = lm(extra_qr ~ treatment, data = d)
 
-stargazer(mod3, mod_3, mod2, mod_2
+stargazer(mod_num_basic, mod3, mod_3, mod_qr_basic,mod2, mod_2
           , type = "latex"
           , dep.var.labels = c("Flyers distributed", "QR codes scanned")
           , covariate.labels = c("Treatment", "Group", "Treatment * Group")
@@ -43,7 +47,44 @@ stargazer(mod3, mod_3, mod2, mod_2
           , notes = c(
             'Values extrapolated based on the time it took to distribute 10 flyers per session'
           )
+          ,column.sep.width = "0.5pt"
+          
           )
+
+stargazer(mod_num_basic, mod_3, mod_qr_basic, mod_2
+          , type = "latex"
+          , dep.var.labels = c("Flyers distributed", "QR codes scanned")
+          , covariate.labels = c("Treatment", 'Team', "Treatment * Team")
+          ,title = "Number of flyers distributed and QR codes scanned on Treatment - Experiment 1"
+          , no.space = TRUE
+          , notes = c(
+            'Values extrapolated based on the time it took to distribute 10 flyers per session'
+          )
+         
+          
+)
+
+stargazer(mod_num_basic, mod3, mod_3
+          , type = "latex"
+          , dep.var.labels = c("Flyers distributed")
+          , covariate.labels = c("Treatment", "Group", "Treatment * Group")
+          ,title = "Number of flyers distributed on Treatment - Experiment 1"
+          , no.space = TRUE
+          , notes = c(
+            'Values extrapolated based on the time it took to distribute 10 flyers per session'
+          )
+)
+
+stargazer(mod_qr_basic,mod2, mod_2
+          , type = "latex"
+          , dep.var.labels = c("QR codes scanned")
+          , covariate.labels = c("Treatment", "Group", "Treatment * Group")
+          ,title = "QR codes scanned on Treatment - Experiment 1"
+          , no.space = TRUE
+          , notes = c(
+            'Values extrapolated based on the time it took to distribute 10 flyers per session'
+          ))
+
 
 
 
