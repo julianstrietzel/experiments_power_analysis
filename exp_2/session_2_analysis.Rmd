@@ -1,6 +1,6 @@
 ---
 ---
----
+---sf
 
 ```{r, include = FALSE}
 library(data.table)
@@ -19,11 +19,20 @@ head(data)
 ```
 
 ```{r}
-model_not_interacted = data[, lm(success_rate ~ treatment + factor(team) + factor(person))]
+# Experiment 2 Analysis for poster and paper with 5 min sessions
+basic_model = data[, lm(success_rate ~ treatment)]
 model_interacted_person = data[, lm(success_rate ~ treatment*factor(person))]
 model_interacted_team = data[, lm(success_rate ~ treatment*factor(team))]
 
-stargazer(model_not_interacted, model_interacted_person, model_interacted_team, type = "text")
+stargazer(basic_model, model_interacted_team, model_interacted_person
+          , type = "text"
+          , title = "Success Rate on Treatment - Experiment 2", dep.var.labels = "Success Rate"
+          , column.labels = c("Basic", "Interacted Team", "Interacted Person")
+          , covariate.labels = c("Treatment", "Team vw", "Treatment*Team vw", "Person j", 'Person s', 'Person v', 'Person w', 'Treatment*Person j', 'Treatment*Person s', 'Treatment*Person v', 'Treatment*Person w')
+          , no.space = TRUE
+          , notes = c('Success rate is the cumulated success rate per virtual 2 minute session', 'Treatment constant is for person js, which was partly not marked in the data')
+          , omit = "session_starts"
+          )
 ```
 
 ```{r}
@@ -81,3 +90,9 @@ for (i in 1:1000) {
 ggplot() + geom_histogram(aes(x = ates), bins = 30) + geom_vline(xintercept = real_ate, color = "red") + theme_minimal()
 (p_value = sum(abs(ates) <= abs(real_ate)) / length(ates))
 ```
+# Plotting cum sum per session, as suggested by Alex during last weeks meeting
+```{r}
+data[, cum_success_rate := cumsum(success_rate), by = c("team", "treatment")]
+
+```
+
