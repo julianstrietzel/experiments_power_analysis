@@ -4,7 +4,7 @@ by: Julian Strietzel, Srisha Raj, William Kuchenbuch, Vetle Jahr
 ![INFO241_Poster.png](documents/INFO241_Poster.png)
 Proposal and final paper:  
 [Proposal](documents/Abstract.pdf)  
-[Final Report](documents/Experiments___Final_Report%20%284%29.pdf)
+[Final Report](documents/Experiments___Final_Report.pdf)
 
 
 
