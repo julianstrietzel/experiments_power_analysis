@@ -16,6 +16,9 @@ d <- bind_rows(
 d[, quote_used := seconds_to_cap / (60 * 10)]
 d[, `:=` (extra_qr = qr_scanned / quote_used, extra_num_flyers = num_flyers /quote_used)]
 
+# export to csv
+fwrite(d, here("exp_1_data_cleaned.csv"))
+
 mod1 = lm(seconds_to_cap ~ treatment + group, data = d)
 
 mod2 = lm(extra_qr ~ treatment + group, data = d)

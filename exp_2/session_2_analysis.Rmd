@@ -16,6 +16,10 @@ data = fread(here("exp_2", "5_virtual_sessions_combined.csv"))
 ```{r}
 # showing the data: 
 head(data)
+# export random 10 lines for the paper
+fwrite(d, here("exp_1_data_cleaned.csv"))
+# print headlines
+print(colnames(data))
 ```
 
 ```{r}
@@ -118,6 +122,18 @@ stargazer(basic_model_all, model_interacted_team_all, model_interacted_person_al
 ```
 
 ```{r}
-summary(all_data[, lm(success ~ treatment*factor(person) -1)])
+# Poster Version
+stargazer(basic_model, model_interacted_person, basic_model_all, model_interacted_person_all
+          , type = "latex"
+          , title = "Success Rate on Treatment - Experiment 2"
+          , dep.var.labels = c("Success Rate - Clustered", "Success Rate - Ignoring Clustering")
+          , column.labels = c("Basic", "Interacted Person","Basic*", "Interacted Person*")
+          , covariate.labels = c("Treatment", "Person j", 'Person s', 'Person v', 'Person w', 'Treatment*Person j', 'Treatment*Person s', 'Treatment*Person v', 'Treatment*Person w')
+          , no.space = TRUE
+          , notes = c('*Regressing treatment per individual person passing, on them taking the flyer or not',
+                      '*This ignores the clustered randomization of the sessions'
+                      , 'Treatment constant is for person js, which was partly not marked in the data')
+          , omit = c("session_starts", 'session_within')
+          )
 ```
 
