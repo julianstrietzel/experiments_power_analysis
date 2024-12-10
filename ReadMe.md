@@ -1,12 +1,13 @@
-
-Embed poster: 
-![INFO241_Poster.pdf](docs/INFO241_Poster.pdf)
-
-Our final paper:
-[Experiments___Final_Report (4).pdf](docs/Experiments___Final_Report%20%284%29.pdf)
 ## **The Influence of University Apparel on Stranger Interaction**
 
 by: Julian Strietzel, Srisha Raj, William Kuchenbuch, Vetle Jahr 
+![INFO241_Poster.png](documents/INFO241_Poster.png)
+Proposal and final paper:  
+[Proposal](documents/Abstract.pdf)  
+[Final Report](documents/Experiments___Final_Report%20%284%29.pdf)
+
+
+
 
 This repository contains the data, analysis scripts, and supplementary materials for the research project titled *"The Influence of University Apparel on Stranger Interaction"*. The study investigates whether wearing university-branded merchandise can enhance social interactions among strangers on a college campus, using flyer acceptance rates as a proxy measure.
 This work has been conducted as part of the course INFO 241: Experiments & Causal Inference, taught by Professor Alex Hughes at the School of Information at the University of California, Berkeley.
